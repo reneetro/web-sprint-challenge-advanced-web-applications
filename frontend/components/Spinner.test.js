@@ -12,7 +12,7 @@ test('renders when spinner is set to "on"',() => {
   const spinner = screen.getByText(/please wait/i);
 })
 
-test('DOES NOT render when spinner is set to "on"',() => {
+test('DOES NOT render when spinner is set to "off"',() => {
   render(<Spinner on={false}/>)
   const spinner = screen.queryByText(/please wait/i);
   expect(spinner).toBe(null)
