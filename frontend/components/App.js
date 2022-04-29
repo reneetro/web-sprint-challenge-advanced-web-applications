@@ -10,6 +10,7 @@ const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
 
 import axios from 'axios';
+import axiosWithAuth from '../axios';
 
 export default function App() {
   // ✨ MVP can be achieved with these states
@@ -68,6 +69,17 @@ export default function App() {
     // If something goes wrong, check the status of the response:
     // if it's a 401 the token might have gone bad, and we should redirect to login.
     // Don't forget to turn off the spinner!
+    setMessage('');
+    setSpinnerOn(true);
+    axiosWithAuth().get(articlesUrl)
+      .then(res => {
+        setMessage(res.data.message);
+        setArticles(res.data.articles);
+        setSpinnerOn(false);
+      })
+      .catch(err => {
+        redirectToLogin();
+      })
   }
 
   const postArticle = article => {
@@ -84,6 +96,19 @@ export default function App() {
 
   const deleteArticle = article_id => {
     // ✨ implement
+    setSpinnerOn(true);
+    axiosWithAuth().delete(`${articlesUrl}/${article_id}`)
+      .then( res => {
+        console.log(res)
+        setSpinnerOn(false);
+        setMessage(res.data.message);
+        setArticles(articles.filter(art => {
+          return art.article_id !== article_id
+        }))
+      })
+      .catch(err => {
+        setMessage(err?.response?.data.message)
+      })
   }
 
   return (
@@ -102,8 +127,8 @@ export default function App() {
           <Route path="/" element={<LoginForm login={login}/>} />
           <Route path="articles" element={
             <>
-              <ArticleForm />
-              <Articles />
+              <ArticleForm postArticle={postArticle} updateArticle={updateArticle}/>
+              <Articles getArticles={getArticles} articles={articles} deleteArticle={deleteArticle}/>
             </>
           } />
         </Routes>
