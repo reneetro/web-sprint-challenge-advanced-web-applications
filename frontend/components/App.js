@@ -87,11 +87,55 @@ export default function App() {
     // The flow is very similar to the `getArticles` function.
     // You'll know what to do! Use log statements or breakpoints
     // to inspect the response from the server.
+    setSpinnerOn(true);
+    setMessage('');
+    axiosWithAuth().post(articlesUrl, article)
+      .then(res => {
+        setMessage(res.data.message);
+        setSpinnerOn(false);
+        setArticles([
+          ...articles,
+          res.data.article
+        ])
+      })
+      .catch(err => {
+        console.log(err);
+      })
   }
 
-  const updateArticle = ({ article_id, article }) => {
+  const putArticle = article => {
+    setSpinnerOn(true);
+    const { article_id, ...changes } = article
+    axiosWithAuth().put(`${articlesUrl}/${article_id}`, changes)
+      .then(res => {
+        setArticles(articles.map(art => {
+          return art.article_id === article_id
+          ? res.data.article
+          : art
+        }))
+        setMessage(res.data.message)
+        setCurrentArticleId(null)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+      .finally(() => {
+        setSpinnerOn(false)
+      })
+  }
+
+  const updateArticle = (article_id) => {
     // ✨ implement
     // You got this!
+    setCurrentArticleId(article_id);
+  }
+
+  const onSubmit = article => {
+    if (currentArticleId){
+      putArticle(article)
+    } else {
+      postArticle(article)
+    }
   }
 
   const deleteArticle = article_id => {
@@ -127,8 +171,19 @@ export default function App() {
           <Route path="/" element={<LoginForm login={login}/>} />
           <Route path="articles" element={
             <>
-              <ArticleForm postArticle={postArticle} updateArticle={updateArticle}/>
-              <Articles getArticles={getArticles} articles={articles} deleteArticle={deleteArticle}/>
+              <ArticleForm 
+              postArticle={postArticle}  
+              onSubmit={onSubmit} 
+              article={articles.find(art => art.article_id === currentArticleId)}
+              setSpinnerOn={setSpinnerOn}
+              />
+              <Articles 
+              getArticles={getArticles} 
+              articles={articles} 
+              deleteArticle={deleteArticle}
+              updateArticle={updateArticle}
+              
+              />
             </>
           } />
         </Routes>
